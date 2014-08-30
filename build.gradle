@@ -6,7 +6,7 @@ buildscript {
 apply plugin: 'rxjava-project'
 
 dependencies {
-    compile 'com.netflix.rxjava:rxjava-core:0.20.+'
+    compile 'io.reactivex:rxjava:1.0.+'
     compile 'org.apache.httpcomponents:httpclient:4.3'
     compile 'org.apache.httpcomponents:httpcore-nio:4.3'
     compile 'org.apache.httpcomponents:httpasyncclient:4.0'
