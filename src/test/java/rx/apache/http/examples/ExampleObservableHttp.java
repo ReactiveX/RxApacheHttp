@@ -80,7 +80,7 @@ public class ExampleObservableHttp {
                         });
                     }
                 })
-                .toBlockingObservable()
+                .toBlocking()
                 .forEach(new Action1<String>() {
 
                     @Override
@@ -118,7 +118,7 @@ public class ExampleObservableHttp {
                     }
                 })
                 .take(3)
-                .toBlockingObservable()
+                .toBlocking()
                 .forEach(new Action1<String>() {
 
                     @Override
