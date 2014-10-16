@@ -1,12 +1,12 @@
 /**
  * Copyright 2014 Netflix, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,8 @@ import rx.apache.http.ObservableHttpResponse;
 import rx.subscriptions.CompositeSubscription;
 
 /**
- * AbstractAsyncResponseConsumer that chooses different implementations based on return headers.
+ * AbstractAsyncResponseConsumer that chooses different implementations based on
+ * return headers.
  * <p>
  * <ul>
  * <li>Content-Type:text/event-stream == {@link ResponseConsumerEventStream}</li>
@@ -41,34 +42,47 @@ import rx.subscriptions.CompositeSubscription;
  */
 public class ResponseConsumerDelegate extends AbstractAsyncResponseConsumer<HttpResponse> {
 
-    private volatile ResponseDelegate consumer = null;
+    private volatile ResponseDelegate              consumer = null;
     final Observer<? super ObservableHttpResponse> observer;
-    final CompositeSubscription subscription;
+    final CompositeSubscription                    subscription;
 
-    public ResponseConsumerDelegate(final Observer<? super ObservableHttpResponse> observer, CompositeSubscription subscription) {
+    public ResponseConsumerDelegate(final Observer<? super ObservableHttpResponse> observer,
+            CompositeSubscription subscription) {
         this.observer = observer;
         this.subscription = subscription;
     }
 
     @Override
     protected void onResponseReceived(HttpResponse response) throws HttpException, IOException {
-        // when we receive the response with headers we evaluate what type of consumer we want
-        if (responseIsStreamLike(response)) {
+        // when we receive the response with headers we evaluate what type of
+        // consumer we want
+        if (responseIsEventStream(response)) {
             consumer = new ResponseConsumerEventStream(observer, subscription);
+
+        } else if (responseIsChunked(response)) {
+            consumer = new ResponseConsumerChunked(observer, subscription);
+
         } else {
             consumer = new ResponseConsumerBasic(observer, subscription);
+
         }
         // forward 'response' to actual consumer
         consumer._onResponseReceived(response);
     }
 
-    private boolean responseIsStreamLike(HttpResponse response) {
+    private boolean responseIsEventStream(HttpResponse response) {
         final Header contentType = response.getFirstHeader("Content-Type");
-        // use 'contains' instead of equals since Content-Type can contain additional information
-        // such as charset ... see here: http://www.w3.org/International/O-HTTP-charset
+        // use 'contains' instead of equals since Content-Type can contain
+        // additional information
+        // such as charset ... see here:
+        // http://www.w3.org/International/O-HTTP-charset
         if (contentType != null && contentType.getValue().contains("text/event-stream")) {
             return true;
         }
+        return false;
+    }
+
+    private boolean responseIsChunked(HttpResponse response) {
         final Header transferEncoding = response.getFirstHeader("Transfer-Encoding");
         if (transferEncoding != null && transferEncoding.getValue().equals("chunked")) {
             return true;
