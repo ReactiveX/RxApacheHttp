@@ -1,12 +1,12 @@
 /**
  * Copyright 2014 Netflix, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,15 +66,12 @@ class ResponseConsumerEventStream extends AsyncByteConsumer<HttpResponse> implem
         }
         while (buf.position() < buf.limit()) {
             byte b = buf.get();
-            if (b == 10 || b == 13) {
-                if (dataBuffer.hasContent()) {
-                    contentSubject.onNext(dataBuffer.getBytes());
-                }
-                dataBuffer.reset();
-            } else {
-                dataBuffer.addByte(b);
-            }
+            dataBuffer.addByte(b);
         }
+        if (dataBuffer.hasContent()) {
+            contentSubject.onNext(dataBuffer.getBytes());
+        }
+        dataBuffer.reset();
     }
 
     @Override
